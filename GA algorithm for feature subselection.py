@@ -1,6 +1,8 @@
+#
+
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import KFold
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn import metrics
@@ -12,12 +14,12 @@ import matplotlib.pyplot as plt
 
 # 1. Data Retrieval
 # Modify the respective addresses and feature counts in the following code to read the desired data.
-data = pd.read_csv('2023-01-10 Data for ML correct1.csv', usecols=range(1, 37))
-label = pd.read_csv('2023-01-10 Data for ML correct1.csv', usecols=[0])
+data = pd.read_csv('your_data.csv')  # Replace 'your_data.csv' with the path to your data file
+label = data.pop('target_variable')  # Replace 'target_variable' with the name of your target variable column
 
 scores_r2 = []  # Cross-Validation R2 scores
 scores_mean_squared_error = []  # Cross-Validation mean squared error scores
-Select_time = []  # Count of times a feature is selected by the genetic algorithm
+select_time = []  # Count of times a feature is selected by the genetic algorithm
 
 # K-Fold Cross-Validation
 kf = KFold(n_splits=5, shuffle=True, random_state=5)
@@ -28,8 +30,8 @@ model_name = clf.__class__.__name__
 csv_filename = f"GA_output_{model_name}.csv"
 
 # Fitness evaluation function
-def getFitness(individual):
-    for train_index, test_index in kf.split(data, label):
+def get_fitness(individual):
+    for train_index, test_index in kf.split(data):
         x_train, x_test = data.iloc[train_index], data.iloc[test_index]
         y_train, y_test = label.iloc[train_index], label.iloc[test_index]
         
@@ -44,12 +46,12 @@ def getFitness(individual):
         X_train_oh_features = transfer.fit_transform(X_train_oh_features)
         X_test_oh_features = transfer.transform(X_test_oh_features)
 
-        clf.fit(X_train_oh_features, y_train.values.ravel())
+        clf.fit(X_train_oh_features, y_train)
         y_pred = clf.predict(X_test_oh_features)
-        R_2 = metrics.r2_score(y_test, y_pred)
-        mean_squared_error = metrics.mean_squared_error(y_test, y_pred)
-        scores_r2.append(R_2)
-        scores_mean_squared_error.append(mean_squared_error)
+        r2 = metrics.r2_score(y_test, y_pred)
+        mse = metrics.mean_squared_error(y_test, y_pred)
+        scores_r2.append(r2)
+        scores_mean_squared_error.append(mse)
         
     scores_r2_mean = np.mean(scores_r2)
     scores_mean_squared_error_mean = np.mean(scores_mean_squared_error)
@@ -70,17 +72,17 @@ toolbox = base.Toolbox()
 toolbox.register("attr_bool", random.randint, 0, 1)
 toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, len(data.columns))
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.register("evaluate", getFitness)
+toolbox.register("evaluate", get_fitness)
 toolbox.register("mate", tools.cxOnePoint)
 toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
 toolbox.register("select", tools.selTournament, tournsize=3)
 
 # Initialize variables
-def getHof():
-    numPop = 200
-    numGen = 80
-    pop = toolbox.population(n=numPop)
-    hof = tools.HallOfFame(numPop * numGen)
+def get_hof():
+    num_pop = 200
+    num_gen = 80
+    pop = toolbox.population(n=num_pop)
+    hof = tools.HallOfFame(num_pop * num_gen)
 
     def min_fitness1(individuals):
         return min(ind.fitness.values[0] for ind in individuals)
@@ -116,67 +118,67 @@ def getHof():
     stats.register("avg_fitness2", avg_fitness2)
     stats.register("std_fitness2", std_fitness2)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=numGen, stats=stats, halloffame=hof, verbose=True)
+    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=num_gen, stats=stats, halloffame=hof, verbose=True)
 
     return hof
 
-def getMetrics(hof):
-    percentileList = [i / (len(hof) - 1) for i in range(len(hof))]
+def get_metrics(hof):
+    percentile_list = [i / (len(hof) - 1) for i in range(len(hof))]
 
-    validation_R2_List = []
-    individualList = []
+    validation_r2_list = []
+    individual_list = []
 
     for individual in hof:
-        validation_R2 = [getFitness(individual)[0]]
-        validation_R2_List.append(validation_R2[0])
-        individualList.append(individual)
+        validation_r2 = [get_fitness(individual)[0]]
+        validation_r2_list.append(validation_r2[0])
+        individual_list.append(individual)
 
-    validation_R2_List.reverse()
-    individualList.reverse()
+    validation_r2_list.reverse()
+    individual_list.reverse()
 
-    return validation_R2_List, individualList, percentileList
+    return validation_r2_list, individual_list, percentile_list
 
 if __name__ == '__main__':
     individual = toolbox.individual()
     individual[:] = [1 for _ in range(len(data.columns))]
-    Test_R2, Test_MSE = getFitness(individual)
-    print('\nTest R2 with all features: \t' + str(Test_R2))
-    print('Test MSE with all features: \t' + str(Test_MSE))
+    test_r2, test_mse = get_fitness(individual)
+    print('\nTest R2 with all features: \t' + str(test_r2))
+    print('Test MSE with all features: \t' + str(test_mse))
 
-    hof = getHof()
-    validation_R2_List, individualList, percentileList = getMetrics(hof)
+    hof = get_hof()
+    validation_r2_list, individual_list, percentile_list = get_metrics(hof)
 
-    individualList_transpose = list(map(list, zip(*individualList)))
-    for i in range(len(individualList_transpose)):
-        Select_time.append(individualList_transpose[i].count(1))
-    print(Select_time)
+    individual_list_transpose = list(map(list, zip(*individual_list)))
+    for i in range(len(individual_list_transpose)):
+        select_time.append(individual_list_transpose[i].count(1))
+    print(select_time)
 
-    maxValAccSubsetIndicies = [index for index in range(len(validation_R2_List)) if validation_R2_List[index] == max(validation_R2_List)]
-    maxValIndividuals = [individualList[index] for index in maxValAccSubsetIndicies]
-    maxValSubsets = [[list(data)[index] for index in range(len(individual)) if individual[index] == 1] for individual in maxValIndividuals]
+    max_val_acc_subset_indices = [index for index in range(len(validation_r2_list)) if validation_r2_list[index] == max(validation_r2_list)]
+    max_val_individuals = [individual_list[index] for index in max_val_acc_subset_indices]
+    max_val_subsets = [[data.columns[index] for index in range(len(individual)) if individual[index] == 1] for individual in max_val_individuals]
 
     print('\n---Optimal Feature Subset(s)---\n')
-    for index in range(len(maxValAccSubsetIndicies)):
-        print('Validation R2: \t\t' + str(validation_R2_List[maxValAccSubsetIndicies[index]]))
-        print('Individual: \t' + str(maxValIndividuals[index]))
-        print('Number Features In Subset: \t' + str(len(maxValSubsets[index])))
-        print('Feature Subset: ' + str(maxValSubsets[index]))
+    for index in range(len(max_val_acc_subset_indices)):
+        print('Validation R2: \t\t' + str(validation_r2_list[max_val_acc_subset_indices[index]]))
+        print('Individual: \t' + str(max_val_individuals[index]))
+        print('Number of Features in Subset: \t' + str(len(max_val_subsets[index])))
+        print('Feature Subset: ' + str(max_val_subsets[index]))
 
-    tck = interpolate.splrep(percentileList, validation_R2_List, s=5.0)
-    ynew = interpolate.splev(percentileList, tck)
+    tck = interpolate.splrep(percentile_list, validation_r2_list, s=5.0)
+    ynew = interpolate.splev(percentile_list, tck)
 
     e = plt.figure(1)
-    plt.plot(percentileList, validation_R2_List, marker='o', color='r')
-    plt.plot(percentileList, ynew, color='b')
-    plt.title('Validation Set Regression R2 vs. Continuum with Cubic-Spline Interpolation')
-    plt.xlabel('Population Ordered By Increasing Test Set R2')
-    plt.ylabel('Validation Set R2')
-    e.show()
-
-    f = plt.figure(2)
-    number = [i + 1 for i in range(len(individualList))]
-    plt.scatter(number, validation_R2_List)
+    plt.plot(percentile_list, validation_r2_list, marker='o', color='r')
+    plt.plot(percentile_list, ynew, color='b')
     plt.title('Validation Set Regression R2 vs. Continuum')
     plt.xlabel('Population Ordered By Increasing Test Set R2')
     plt.ylabel('Validation Set R2')
-    f.show()
+    plt.show()
+
+    f = plt.figure(2)
+    number = [i + 1 for i in range(len(individual_list))]
+    plt.scatter(number, validation_r2_list)
+    plt.title('Validation Set Regression R2 vs. Continuum')
+    plt.xlabel('Population Ordered By Increasing Test Set R2')
+    plt.ylabel('Validation Set R2')
+    plt.show()
