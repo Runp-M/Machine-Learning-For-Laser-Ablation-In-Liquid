@@ -1,4 +1,8 @@
 # The code will optimize each model separately using Bayesian Optimization and provide the best parameters and score for each model.
+
+pip install catboost
+pip install bayesian-optimization
+
 import pandas as pd
 import numpy as np
 from sklearn import metrics
@@ -6,9 +10,9 @@ import xgboost as xgb
 from xgboost import XGBRegressor
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import GradientBoostingRegressor
-from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from bayes_opt import BayesianOptimization
+from catboost import CatBoostRegressor
 
 # Data Retrieval
 df = pd.read_csv('your_data.csv')
