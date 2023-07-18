@@ -14,7 +14,7 @@ from deap import base, creator, tools, algorithms
 from scipy import interpolate
 import matplotlib.pyplot as plt
 
-# 1. Data Retrieval
+# Data Retrieval
 # Modify the respective addresses and feature counts in the following code to read the desired data.
 data = pd.read_csv('your_data.csv')  # Replace 'your_data.csv' with the path to your data file
 label = data.pop('target_variable')  # Replace 'target_variable' with the name of your target variable column
