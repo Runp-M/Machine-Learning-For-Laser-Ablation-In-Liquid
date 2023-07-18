@@ -1,4 +1,6 @@
-
+# The code implements a genetic algorithm approach for feature selection in machine learning using linear regression as the base model. 
+# It performs k-fold cross-validation to evaluate the fitness of each individual, where individuals represent feature subsets encoded as binary strings. 
+# The algorithm aims to optimize two fitness criteria: maximizing the coefficient of determination (R2) and minimizing the mean squared error (MSE).
 
 import pandas as pd
 import numpy as np
@@ -182,3 +184,10 @@ if __name__ == '__main__':
     plt.xlabel('Population Ordered By Increasing Test Set R2')
     plt.ylabel('Validation Set R2')
     plt.show()
+
+
+# The "Population Ordered By Increasing Test Set R2" plot in the provided code visualizes the improvement in model performance during the optimization process of the genetic algorithm. 
+# By plotting the "Population Ordered By Increasing Test Set R2" graph, we can observe the enhancement of model performance as the optimization progresses.
+
+# "Validation Set Regression R2 vs. Continuum," depicts the relationship between the R2 values of the validation set and the population order. 
+# It illustrates the distribution of validation set R2 values, providing insights into how the regression performance varies across different population orders.
