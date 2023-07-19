@@ -3,13 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_val_score
 from sklearn import metrics
 import xgboost as xgb
 from xgboost import XGBRegressor
-from xgboost import plot_importance
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import VotingRegressor
@@ -113,8 +109,9 @@ plt.ylim(lims)
 _ = plt.plot(lims, lims)
 
 # Load Gradient Boost model
-gbr = GradientBoostingRegressor(n_estimators=int(space['n_estimators']), learning_rate=space['learning_rate'], max_depth=int(space['max_depth']),
-                                max_features=str(space['max_features']), loss=str(space['loss']), subsample=space['subsample'], random_state=int(space['random_state']))
+gbr = GradientBoostingRegressor(n_estimators=int(n_estimators), learning_rate=learning_rate, max_depth=int(max_depth),
+                                    max_features=max_features_options[int(max_features)], loss=loss_options[int(loss)],
+                                    subsample=subsample, random_state=int(random_state))
 gbr.fit(X_train, y_train)
 
 train_score = gbr.score(X_train, y_train)
