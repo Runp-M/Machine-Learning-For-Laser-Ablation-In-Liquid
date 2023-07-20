@@ -192,6 +192,6 @@ print("Best Parameters:", lgb_opt['params'])
 
 # Optimize Neural network model
 MLP_opt = optimize_model('MLP')
-print("Optimized LightGBM Model:")
+print("Optimized Neural network Model:")
 print("Best Score:", MLP_opt['target'])
 print("Best Parameters:", MLP_opt['params'])
