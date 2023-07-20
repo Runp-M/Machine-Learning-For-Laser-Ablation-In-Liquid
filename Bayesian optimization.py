@@ -13,6 +13,8 @@ from sklearn.ensemble import GradientBoostingRegressor
 from lightgbm import LGBMRegressor
 from bayes_opt import BayesianOptimization
 from catboost import CatBoostRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import MinMaxScaler
 
 # Data Retrieval
 df = pd.read_csv('your_data.csv')
@@ -20,23 +22,23 @@ X = df.drop(columns=['target_variable'], axis=1)
 y = df['target_variable']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=0)
 
-def xgb_cv(learning_rate, max_depth, n_estimators, gamma, min_child_weight, subsample, colsample_bytree, reg_alpha, reg_lambda, seed):
-    res = XGBRegressor(learning_rate=min(learning_rate, 0.99), max_depth=int(max_depth), n_estimators=int(n_estimators), gamma=min(gamma, 0.99),
+def optimize_xgb(learning_rate, max_depth, n_estimators, gamma, min_child_weight, subsample, colsample_bytree, reg_alpha, reg_lambda, seed):
+    xgb = XGBRegressor(learning_rate=min(learning_rate, 0.99), max_depth=int(max_depth), n_estimators=int(n_estimators), gamma=min(gamma, 0.99),
                        min_child_weight=int(min_child_weight), subsample=min(subsample, 2), colsample_bytree=min(colsample_bytree, 2),
                        reg_alpha=int(reg_alpha), reg_lambda=int(reg_lambda), seed=int(seed))
-    res.fit(X_train, y_train)
-    train_score = res.score(X_train, y_train)
-    test_score = res.score(X_test, y_test)
+    xgb.fit(X_train, y_train)
+    train_score = xgb.score(X_train, y_train)
+    test_score = xgb.score(X_test, y_test)
     return test_score
 
-def ada_cv(n_estimators, learning_rate, random_state):
+def optimize_ada(n_estimators, learning_rate, random_state):
     ada = AdaBoostRegressor(n_estimators=int(n_estimators), learning_rate=min(learning_rate, 2), random_state=int(random_state), base_estimator=res)
     ada.fit(X_train, y_train)
     train_score = ada.score(X_train, y_train)
     test_score = ada.score(X_test, y_test)
     return test_score
 
-def gbr_cv(n_estimators, learning_rate, max_depth, max_features, loss, subsample, random_state):
+def optimize_gbr(n_estimators, learning_rate, max_depth, max_features, loss, subsample, random_state):
     max_features_options = ['auto', 'sqrt', 'log2']
     loss_options = ['squared_error', 'absolute_error', 'huber', 'quantile']
     gbr = GradientBoostingRegressor(n_estimators=int(n_estimators), learning_rate=learning_rate, max_depth=int(max_depth),
@@ -47,7 +49,7 @@ def gbr_cv(n_estimators, learning_rate, max_depth, max_features, loss, subsample
     test_score = gbr.score(X_test, y_test)
     return test_score
 
-def cat_cv(iterations, learning_rate, depth, l2_leaf_reg, random_strength):
+def optimize_cat(iterations, learning_rate, depth, l2_leaf_reg, random_strength):
     cat = CatBoostRegressor(iterations=int(iterations), learning_rate=min(learning_rate, 0.99), depth=int(depth),
                             l2_leaf_reg=int(l2_leaf_reg), random_strength=min(random_strength, 11),
                             loss_function='RMSE', early_stopping_rounds=10, verbose=0)
@@ -56,7 +58,7 @@ def cat_cv(iterations, learning_rate, depth, l2_leaf_reg, random_strength):
     test_score = cat.score(X_test, y_test)
     return test_score
 
-def lgb_cv(learning_rate, max_depth, n_estimators, min_child_samples, subsample, colsample_bytree, num_leaves,
+def optimize_lgb(learning_rate, max_depth, n_estimators, min_child_samples, subsample, colsample_bytree, num_leaves,
            min_split_gain, random_state, reg_alpha, reg_lambda):
     lgb = LGBMRegressor(learning_rate=min(learning_rate, 1.5), max_depth=int(max_depth), n_estimators=int(n_estimators),
                         min_child_samples=int(min_child_samples), subsample=min(subsample, 2),
@@ -67,6 +69,36 @@ def lgb_cv(learning_rate, max_depth, n_estimators, min_child_samples, subsample,
     train_score = lgb.score(X_train, y_train)
     test_score = lgb.score(X_test, y_test)
     return test_score
+
+def optimize_mlp(hidden_layer_sizes_1, hidden_layer_sizes_2, alpha, learning_rate_init, max_iter, tol, momentum,
+                 validation_fraction, random_state, beta_1, beta_2, epsilon,
+                 n_iter_no_change, max_fun):
+ 
+    # Setting hidden layer sizes as a iterable parameter in Bayesian optimization function. The quantity of element in hidden_layer_sizes represent the quantity of hidden layer in neural network                 
+    hidden_layer_sizes = (int(hidden_layer_sizes_1), int(hidden_layer_sizes_2),)
+    MLP = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes,
+                        alpha=alpha,
+                        learning_rate_init=learning_rate_init,
+                        max_iter=int(max_iter),
+                        tol=tol,
+                        momentum=momentum,
+                        validation_fraction=validation_fraction,
+                        random_state=int(random_state),
+                        beta_1=beta_1,
+                        beta_2=beta_2,
+                        epsilon=epsilon,
+                        n_iter_no_change=int(n_iter_no_change),
+                        max_fun=int(max_fun))
+    normalize = MinMaxScaler()
+    normalized_X_train = normalize.fit_transform(X_train)
+    normalized_X_test = normalize.fit_transform(X_test)
+    normalized_X1 = normalize.fit_transform(X1)
+                     
+    MLP.fit(normalized_X_train, y_train)
+    train_score = MLP.score(normalized_X_train, y_train)
+    test_score = MLP.score(normalized_X_test, y_test)
+
+    return test_score 
 
 pbounds = {'xgb': {'learning_rate': (0.001, 0.999),
                    'max_depth': (3, 30),
@@ -103,15 +135,30 @@ pbounds = {'xgb': {'learning_rate': (0.001, 0.999),
                    'min_split_gain': (0, 10),
                    'random_state': (0, 200),
                    'reg_alpha': (0, 200),
-                   'reg_lambda': (0, 200)}}
+                   'reg_lambda': (0, 200)}
+           'MLP': {'hidden_layer_sizes_1': (1, 100),
+                   'hidden_layer_sizes_2': (1, 100),
+                   'alpha': (0.0001, 0.1),
+                   'learning_rate_init': (0.0001, 0.1),
+                   'max_iter': (100, 1000),
+                   'tol': (0.0001, 0.01),
+                   'momentum': (0.1, 0.9),
+                   'validation_fraction': (0.1, 0.3),
+                   'random_state' :(1,5000),
+                   'beta_1': (0.8, 0.99),
+                   'beta_2': (0.99, 0.999),
+                   'epsilon': (1e-08, 1e-06),
+                   'n_iter_no_change': (5, 20),
+                   'max_fun': (10000, 20000)
+          }}
 
-models = {'xgb': xgb_cv, 'ada': ada_cv, 'gbr': gbr_cv, 'cat': cat_cv, 'lgb': lgb_cv}
+models = {'xgb': optimize_xgb, 'ada': optimize_ada, 'gbr': optimize_gbr, 'cat': optimize_cat, 'lgb': optimize_lgb, 'MLP':optimize_mlp}
 
 def optimize_model(model_name):
     pbounds_model = pbounds[model_name]
     objective_model = models[model_name]
     optimizer = BayesianOptimization(f=objective_model, pbounds=pbounds_model)
-    optimizer.maximize(init_points=10, n_iter=100)
+    optimizer.maximize(init_points=10, n_iter=1000)
     return optimizer.max
 
 # Optimize XGBoost model
@@ -143,3 +190,9 @@ lgb_opt = optimize_model('lgb')
 print("Optimized LightGBM Model:")
 print("Best Score:", lgb_opt['target'])
 print("Best Parameters:", lgb_opt['params'])
+
+# Optimize Neural network model
+MLP_opt = optimize_model('MLP')
+print("Optimized LightGBM Model:")
+print("Best Score:", MLP_opt['target'])
+print("Best Parameters:", MLP_opt['params'])
