@@ -97,7 +97,6 @@ def optimize_mlp(hidden_layer_sizes_1, hidden_layer_sizes_2, alpha, learning_rat
     MLP.fit(normalized_X_train, y_train)
     train_score = MLP.score(normalized_X_train, y_train)
     test_score = MLP.score(normalized_X_test, y_test)
-
     return test_score 
 
 pbounds = {'xgb': {'learning_rate': (0.001, 0.999),
