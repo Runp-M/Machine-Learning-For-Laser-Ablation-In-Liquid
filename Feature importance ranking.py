@@ -1,3 +1,7 @@
+# Title: Data-driven pre-determination of Cu oxidation state in copper nanoparticles: application to the synthesis by laser ablation in liquid
+# Author: Runpeng Miao, Michael Bissoli, Andrea Basagni, Ester Marotta, Stefano Corni, Vincenzo Amendola,*
+# Correspondence: runpeng.miao@phd.unipd.it, vincenzo.amendola@unipd.it
+
 # This code implements the calculation of feature importance of all features by using the dataset of interest fitted in Decision Tree model. 
 # This code could be applied to any ML models basde on sklearn library.
 
