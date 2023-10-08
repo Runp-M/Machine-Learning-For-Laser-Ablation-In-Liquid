@@ -1,3 +1,7 @@
+# Title: Data-driven pre-determination of Cu oxidation state in copper nanoparticles: application to the synthesis by laser ablation in liquid
+# Author: Runpeng Miao, Michael Bissoli, Andrea Basagni, Ester Marotta, Stefano Corni, Vincenzo Amendola,*
+# Correspondence: runpeng.miao@phd.unipd.it, vincenzo.amendola@unipd.it
+
 # The code will optimize each model separately using Bayesian Optimization and provide the best parameters and score for each model.
 
 pip install catboost
@@ -134,7 +138,7 @@ pbounds = {'xgb': {'learning_rate': (0.001, 0.999),
                    'min_split_gain': (0, 10),
                    'random_state': (0, 200),
                    'reg_alpha': (0, 200),
-                   'reg_lambda': (0, 200)}
+                   'reg_lambda': (0, 200)},
            'MLP': {'hidden_layer_sizes_1': (1, 100),
                    'hidden_layer_sizes_2': (1, 100),
                    'alpha': (0.0001, 0.1),
