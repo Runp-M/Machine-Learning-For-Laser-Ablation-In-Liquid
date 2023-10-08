@@ -1,3 +1,8 @@
+# Title: Data-driven pre-determination of Cu oxidation state in copper nanoparticles: application to the synthesis by laser ablation in liquid
+# Author: Runpeng Miao, Michael Bissoli, Andrea Basagni, Ester Marotta, Stefano Corni, Vincenzo Amendola,*
+# Correspondence: runpeng.miao@phd.unipd.it, vincenzo.amendola@unipd.it
+
+# This code utilizes a voting regressor to ensemble five tree-based models, each with optimized hyperparameters, in order to achieve the best predictive capability for the model.
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +14,8 @@ from xgboost import XGBRegressor
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import VotingRegressor
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
 import lightgbm as lgb
 import warnings
 
@@ -67,6 +74,8 @@ print('Best score on test set: {:.2f}'.format(test_score))
 Experimental_score = res.score(X1, y1)
 print('Best score on Experimental set: {:.2f}'.format(Experimental_score))
 
+ypred_train = res.predict(X_train)
+ypred_test = res.predict(X_test)
 ypred = res.predict(X1)
 print('r2_score: {:f}'.format(metrics.r2_score(y1, ypred)))
 
@@ -80,9 +89,20 @@ plt.xlim(lims)
 plt.ylim(lims)
 _ = plt.plot(lims, lims)
 
-from sklearn.metrics import mean_absolute_error
+MAE = mean_absolute_error(y_train, ypred_train)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_train, ypred_train,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y_test, ypred_test)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_test, ypred_test,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
 MAE = mean_absolute_error(y1, ypred)
 print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y1, ypred,squared=False)
+print('RMSE: {:f}'.format(RMSE))
 
 # Load AdaBoost model
 ada = AdaBoostRegressor(n_estimators=int(n_estimators), learning_rate=min(learning_rate, 2), random_state=int(random_state),
@@ -96,6 +116,8 @@ print('Best score on test set: {:.2f}'.format(test_score))
 Experimental_score = ada.score(X1, y1)
 print('Best score on Experimental set: {:.2f}'.format(Experimental_score))
 
+ypred_train = ada.predict(X_train)
+ypred_test = ada.predict(X_test)
 ypred = ada.predict(X1)
 print('r2_score: {:f}'.format(metrics.r2_score(y1, ypred)))
 
@@ -107,6 +129,21 @@ lims = [-1, 3]
 plt.xlim(lims)
 plt.ylim(lims)
 _ = plt.plot(lims, lims)
+
+MAE = mean_absolute_error(y_train, ypred_train)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_train, ypred_train,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y_test, ypred_test)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_test, ypred_test,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y1, ypred)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y1, ypred,squared=False)
+print('RMSE: {:f}'.format(RMSE))
 
 # Load Gradient Boost model
 gbr = GradientBoostingRegressor(n_estimators=int(n_estimators), learning_rate=learning_rate, max_depth=int(max_depth),
@@ -121,8 +158,34 @@ print('Best score on test set: {:.2f}'.format(test_score))
 Experimental_score = gbr.score(X1, y1)
 print('Best score on Experimental set: {:.2f}'.format(Experimental_score))
 
+ypred_train = gbr.predict(X_train)
+ypred_test = gbr.predict(X_test)
 ypred = gbr.predict(X1)
 print('r2_score: {:f}'.format(metrics.r2_score(y1, ypred)))
+
+a = plt.axes(aspect='equal')
+plt.scatter(y1, ypred)
+plt.xlabel('True Values [Output1]')
+plt.ylabel('Predictions [Output1]')
+lims = [-1, 3]
+plt.xlim(lims)
+plt.ylim(lims)
+_ = plt.plot(lims, lims)
+
+MAE = mean_absolute_error(y_train, ypred_train)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_train, ypred_train,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y_test, ypred_test)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_test, ypred_test,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y1, ypred)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y1, ypred,squared=False)
+print('RMSE: {:f}'.format(RMSE))
 
 # Load Light Gradient Boost model
 model_lgb = lgb.LGBMRegressor(learning_rate=min(learning_rate, 1.5), max_depth=int(max_depth), n_estimators=int(n_estimators),
@@ -139,6 +202,8 @@ print('Best score on test set: {:.2f}'.format(test_score))
 Experimental_score = model_lgb.score(X1, y1)
 print('Best score on Experimental set: {:.2f}'.format(Experimental_score))
 
+ypred_train = model_lgb.predict(X_train)
+ypred_test = model_lgb.predict(X_test)
 ypred = model_lgb.predict(X1)
 print('r2_score: {:f}'.format(metrics.r2_score(y1, ypred)))
 
@@ -150,6 +215,21 @@ lims = [-1, 3]
 plt.xlim(lims)
 plt.ylim(lims)
 _ = plt.plot(lims, lims)
+
+MAE = mean_absolute_error(y_train, ypred_train)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_train, ypred_train,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y_test, ypred_test)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_test, ypred_test,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y1, ypred)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y1, ypred,squared=False)
+print('RMSE: {:f}'.format(RMSE))
 
 # Catboost regressor
 pip install catboost
@@ -169,6 +249,8 @@ print('Best score on test set: {:.2f}'.format(test_score))
 Experimental_score = model.score(X1, y1)
 print('Best score on Experimental set: {:.2f}'.format(Experimental_score))
 
+ypred_train = model.predict(X_train)
+ypred_test = model.predict(X_test)
 ypred = model.predict(X1)
 print('r2_score: {:f}'.format(metrics.r2_score(y1, ypred)))
 
@@ -181,9 +263,24 @@ plt.xlim(lims)
 plt.ylim(lims)
 _ = plt.plot(lims, lims)
 
+MAE = mean_absolute_error(y_train, ypred_train)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_train, ypred_train,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y_test, ypred_test)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_test, ypred_test,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y1, ypred)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y1, ypred,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
 # Voting regressor
-vtres = [('Ada Boost', ada1), ('XgBoost', res), ('GradientBoost', gbr), ('Light GradientBoost', model_lgb), ('CatBoost', model)]
-vtres = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=1, weights=(0.85, 1, 0.98, 0.93, 0.90))
+vtres = [('Ada Boost', ada), ('XgBoost', res), ('GradientBoost', gbr), ('Light GradientBoost', model_lgb), ('CatBoost', model)]
+vtres = VotingRegressor(estimators=vtres, n_jobs=-1, verbose=1, weights=(0.85, 1, 0.98, 0.93, 0.90))
 vtres.fit(X_train, y_train)
 
 train_score = vtres.score(X_train, y_train)
@@ -193,7 +290,9 @@ print('Best score on test set: {:.2f}'.format(test_score))
 Experimental_score = vtres.score(X1, y1)
 print('Best score on Experimental set: {:.2f}'.format(Experimental_score))
 
-ypred = vtres.predict(X1)
+ypred_train = model.predict(X_train)
+ypred_test = model.predict(X_test)
+ypred = model.predict(X1)
 print('r2_score: {:f}'.format(metrics.r2_score(y1, ypred)))
 
 a = plt.axes(aspect='equal')
@@ -204,3 +303,18 @@ lims = [-1, 3]
 plt.xlim(lims)
 plt.ylim(lims)
 _ = plt.plot(lims, lims)
+
+MAE = mean_absolute_error(y_train, ypred_train)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_train, ypred_train,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y_test, ypred_test)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y_test, ypred_test,squared=False)
+print('RMSE: {:f}'.format(RMSE))
+
+MAE = mean_absolute_error(y1, ypred)
+print('MAE: {:f}'.format(MAE))
+RMSE = mean_squared_error(y1, ypred,squared=False)
+print('RMSE: {:f}'.format(RMSE))
