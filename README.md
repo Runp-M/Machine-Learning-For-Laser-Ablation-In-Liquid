@@ -1,4 +1,4 @@
-# Machine-Learning-For-Laser-Synthesis
+# Machine-Learning-For-Laser-Ablation-In-Liquid
 List of contets
 
 Folder: 	GA-feature-subset-selection
