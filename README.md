@@ -8,7 +8,7 @@ Description:	The code implements a genetic algorithm approach for feature select
 Folder: 	Voting-regressor
 File:		Feature importance ranking
 Description:	This code implements the calculation of feature importance of all features by using the dataset of interest fitted in Decision Tree model 
-File:		Bayesian optimization
+File:		Hyperparameter optimization by BO
 Description:	The code will optimize each model separately using Bayesian Optimization and provide the best parameters and score for each model
 File:		Voting regressor with 5 models
 Description:	This code utilizes a voting regressor to ensemble five tree-based models, each with optimized hyperparameters, in order to achieve the best predictive capability for the model
